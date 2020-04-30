@@ -1,7 +1,8 @@
 package envoyCodegen
 
 import (
-
+	"envoy-config-generator/config"
+	s "envoy-config-generator/swaggerOperator"
 	"envoy-config-generator/models/apiDefinition"
 	"errors"
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
@@ -11,7 +12,7 @@ import (
 	"strings"
 	"time"
 )
-func createRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.Route, []*v2.Cluster) {
+func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.Route, []*v2.Cluster) {
 	var (
 		routes []*v2route.Route
 		clusters []*v2.Cluster
@@ -25,8 +26,8 @@ func createRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 
 	)
 
-	if(isProductionEndpointsAvailable(mgwSwagger.VendorExtensible)) {
-		apiLevelEndpoint  = getProductionEndpoint(mgwSwagger.VendorExtensible)
+	if(s.IsProductionEndpointsAvailable(mgwSwagger.VendorExtensible)) {
+		apiLevelEndpoint  = s.GetProductionEndpoint(mgwSwagger.VendorExtensible)
 		apilevelAddress := createAddress(apiLevelEndpoint.Url[0],config.API_PORT)
 		apiLevelClusterName := "cluster_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
 		apilevelCluster = createCluster(apilevelAddress,apiLevelClusterName)
@@ -40,8 +41,8 @@ func createRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 	for ind,resource:= range mgwSwagger.Resources {
 
 		//resource level check
-		if(isProductionEndpointsAvailable(resource.VendorExtensible)) {
-			endpoint  = getProductionEndpoint(resource.VendorExtensible)
+		if(s.IsProductionEndpointsAvailable(resource.VendorExtensible)) {
+			endpoint  = s.GetProductionEndpoint(resource.VendorExtensible)
 			address = createAddress(endpoint.Url[0],config.API_PORT)
 			clusterName = "cluster_" + strings.Replace(resource.ID, " ", "", -1) + string(ind)
 			cluster = createCluster(address,clusterName)
@@ -50,7 +51,7 @@ func createRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 			cluster_ref = cluster.GetName()
 
 			//API level check
-		} else if(isProductionEndpointsAvailable(mgwSwagger.VendorExtensible)){
+		} else if(s.IsProductionEndpointsAvailable(mgwSwagger.VendorExtensible)){
 			endpoint = apiLevelEndpoint
 			cluster_ref = apilevelCluster.GetName()
 

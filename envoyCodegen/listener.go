@@ -83,3 +83,31 @@ func CreateConectionManagerFilter(vHost v2route.VirtualHost, routeConfigName str
 	return manager
 }
 
+func CreateVirtualHost(mgwSwagger  apiDefinition.MgwSwagger,routes []*v2route.Route) (v2route.VirtualHost, error) {
+
+	vHost_Name := "service_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
+	vHost_Domains :=  []string{"*"}
+
+	virtual_host := v2route.VirtualHost{
+		Name: vHost_Name,
+		Domains: vHost_Domains,
+		Routes: routes,
+	}
+
+	return virtual_host, nil
+
+}
+
+func createAddress(remoteHost string,Port uint32 ) core.Address {
+	var address core.Address = core.Address{Address: &core.Address_SocketAddress{
+		SocketAddress: &core.SocketAddress{
+			Address:  remoteHost,
+			Protocol: core.SocketAddress_TCP,
+			PortSpecifier: &core.SocketAddress_PortValue{
+				PortValue: uint32(Port),
+			},
+		},
+	}}
+	return address
+}
+

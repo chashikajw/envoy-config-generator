@@ -60,7 +60,7 @@ func GenerateMgwSwagger() apiDefinition.MgwSwagger {
 	return mgwSwagger
 }
 
-func isProductionEndpointsAvailable(vendorExtensible map[string]interface{}) bool{
+func IsProductionEndpointsAvailable(vendorExtensible map[string]interface{}) bool{
 	if _, found := vendorExtensible[constants.PRODUCTION_ENDPOINTS]; found {
 		return true
 	} else {
@@ -70,7 +70,7 @@ func isProductionEndpointsAvailable(vendorExtensible map[string]interface{}) boo
 
 
 
-func getProductionEndpoint(vendorExtensible map[string]interface{}) apiDefinition.Endpoint{
+func GetProductionEndpoint(vendorExtensible map[string]interface{}) apiDefinition.Endpoint{
 	var productionEndpoint apiDefinition.Endpoint
 	if y, found := vendorExtensible["x-wso2-production-endpoints"]; found {
 		if val, ok := y.(map[string]interface{}); ok {

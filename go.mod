@@ -7,4 +7,5 @@ require (
 	github.com/getkin/kin-openapi v0.8.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/spec v0.19.7
+	github.com/golang/protobuf v1.3.2
 )
