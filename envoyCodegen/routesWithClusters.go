@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 )
-func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.Route, []*v2.Cluster, []*v2route.Route, []*v2.Cluster) {
+func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.Route, []*v2.Cluster,[]*core.Address, []*v2route.Route, []*v2.Cluster,[]*core.Address) {
 	var (
 		routesP []*v2route.Route
 		clustersP []*v2.Cluster
@@ -24,6 +24,7 @@ func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 		clusterNameP string
 		addressP core.Address
 		cluster_refP string
+		endpointsP []*core.Address
 
 		routesS []*v2route.Route
 		clustersS []*v2.Cluster
@@ -34,6 +35,7 @@ func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 		clusterNameS string
 		addressS core.Address
 		cluster_refS string
+		endpointsS []*core.Address
 
 	)
 
@@ -43,6 +45,8 @@ func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 		apiLevelClusterNameS := "clusterSand_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
 		apilevelClusterS = createCluster(apilevelAddressS,apiLevelClusterNameS)
 		clustersS = append(clustersS, &apilevelClusterS)
+
+		endpointsS = append(endpointsS, &apilevelAddressS)
 	}
 
 	if(s.IsProductionEndpointsAvailable(mgwSwagger.VendorExtensible)) {
@@ -51,6 +55,8 @@ func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 		apiLevelClusterNameP := "clusterProd_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
 		apilevelClusterP = createCluster(apilevelAddressP,apiLevelClusterNameP)
 		clustersP = append(clustersP, &apilevelClusterP)
+
+		endpointsP = append(endpointsP, &apilevelAddressP)
 
 
 	} else{
@@ -73,6 +79,8 @@ func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 			routeS := createRoute(endpointS.Url[0], resource.Context,cluster_refS)
 			routesS = append(routesS, &routeS)
 
+			endpointsS = append(endpointsS, &addressS)
+
 			//API level check
 		} else if(s.IsSandboxEndpointsAvailable(mgwSwagger.VendorExtensible)) {
 			endpointS = apiLevelEndpointS
@@ -81,6 +89,8 @@ func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 			//sandbox endpoints
 			routeS := createRoute(endpointS.Url[0], resource.Context,cluster_refS)
 			routesS = append(routesS, &routeS)
+
+
 		}
 
 		//resource level check
@@ -97,6 +107,8 @@ func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 			routeP := createRoute(endpointP.Url[0], resource.Context,cluster_refP)
 			routesP = append(routesP, &routeP)
 
+			endpointsP = append(endpointsP, &addressP)
+
 			//API level check
 		} else if(s.IsProductionEndpointsAvailable(mgwSwagger.VendorExtensible)){
 			endpointP = apiLevelEndpointP
@@ -106,6 +118,8 @@ func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 			routeP := createRoute(endpointP.Url[0], resource.Context,cluster_refP)
 			routesP = append(routesP, &routeP)
 
+
+
 		} else {
 			errors.New("Producton endpoints are not defined")
 		}
@@ -113,7 +127,7 @@ func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 
 	}
 
-	return routesP, clustersP,  routesS, clustersS
+	return routesP, clustersP, endpointsP, routesS, clustersS, endpointsP
 
 }
 

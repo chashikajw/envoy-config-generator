@@ -14,7 +14,7 @@ import (
 
 func main() {
 
-	fmt.Println(GetSandboxsources())
+	fmt.Println(GetProductionsources())
 
 }
 
@@ -22,7 +22,7 @@ func GetProductionsources() ([]types.Resource, []types.Resource, []types.Resourc
 	mgwSwagger := swgger.GenerateMgwSwagger()
 	//fmt.Println(mgwSwagger)
 
-	routesP, clustersP, _, _ := e.CreateRoutesWithClusters(mgwSwagger)
+	routesP, clustersP,endpointsP, _, _,_ := e.CreateRoutesWithClusters(mgwSwagger)
 
 	vHost_NameP := "serviceProd_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
 
@@ -39,7 +39,8 @@ func GetProductionsources() ([]types.Resource, []types.Resource, []types.Resourc
 	envoyNodeProd.SetListener(&listnerProd)
 	envoyNodeProd.SetClusters(clustersP)
 	envoyNodeProd.SetRoutes(routesP)
-	fmt.Println(routesP)
+	envoyNodeProd.SetEndpoints(endpointsP)
+	fmt.Println(endpointsP)
 	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++")
 	return envoyNodeProd.GetSources()
 }
@@ -48,7 +49,7 @@ func GetSandboxsources() ([]types.Resource, []types.Resource, []types.Resource, 
 	mgwSwagger := swgger.GenerateMgwSwagger()
 	//fmt.Println(mgwSwagger)
 
-	_, _, routesS, clustersS := e.CreateRoutesWithClusters(mgwSwagger)
+	_, _,_, routesS, clustersS, endpointsS := e.CreateRoutesWithClusters(mgwSwagger)
 	if(routesS == nil) {
 		return nil, nil, nil, nil
 	}
@@ -68,7 +69,8 @@ func GetSandboxsources() ([]types.Resource, []types.Resource, []types.Resource, 
 	envoyNodeSand.SetListener(&listnerSand)
 	envoyNodeSand.SetClusters(clustersS)
 	envoyNodeSand.SetRoutes(routesS)
-	fmt.Println(routesS)
+	envoyNodeSand.SetEndpoints(endpointsS)
+	fmt.Println(endpointsS)
 	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 	return envoyNodeSand.GetSources()
