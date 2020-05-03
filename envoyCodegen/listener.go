@@ -2,7 +2,6 @@ package envoyCodegen
 
 import (
 	config "envoy-config-generator/config"
-	"envoy-config-generator/models/apiDefinition"
 	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	listener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
@@ -10,10 +9,10 @@ import (
 	hcm "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/protobuf/ptypes"
-	"strings"
+
 )
 
-func CreateListener(listenerName string, mgwSwagger  apiDefinition.MgwSwagger,vHost v2route.VirtualHost) v2.Listener {
+func CreateListener(listenerName string,routeConfigName string ,vHostP v2route.VirtualHost) (v2.Listener) {
 	listenerAddress := &core.Address_SocketAddress{
 		SocketAddress: &core.SocketAddress{
 			Protocol: core.SocketAddress_TCP,
@@ -24,7 +23,8 @@ func CreateListener(listenerName string, mgwSwagger  apiDefinition.MgwSwagger,vH
 		},
 	}
 
-	listenerFilters := CreateListenerFilters(mgwSwagger,vHost)
+
+	listenerFilters := CreateListenerFilters(routeConfigName,vHostP )
 
 	listener := v2.Listener{
 		Name: listenerName,
@@ -40,18 +40,19 @@ func CreateListener(listenerName string, mgwSwagger  apiDefinition.MgwSwagger,vH
 
 }
 
-func CreateListenerFilters(mgwSwagger  apiDefinition.MgwSwagger,vHost v2route.VirtualHost) []*listener.Filter {
+func CreateListenerFilters(routeConfigName  string,vHost v2route.VirtualHost) ([]*listener.Filter) {
 	var filters []*listener.Filter
 
-	//set connection manager filter
-	routeConfigName := "route_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
-	manager := CreateConectionManagerFilter(vHost,routeConfigName)
 
-	pbst, err := ptypes.MarshalAny(manager)
+	//set connection manager filter for production
+	managerP := CreateConectionManagerFilter(vHost,routeConfigName)
+
+
+	pbst, err := ptypes.MarshalAny(managerP)
 	if err != nil {
 		panic(err)
 	}
-	connectionManagerFilter := listener.Filter{
+	connectionManagerFilterP := listener.Filter{
 		Name: wellknown.HTTPConnectionManager,
 		ConfigType: &listener.Filter_TypedConfig{
 			TypedConfig: pbst,
@@ -59,8 +60,9 @@ func CreateListenerFilters(mgwSwagger  apiDefinition.MgwSwagger,vHost v2route.Vi
 	}
 
 
+
 	//add filters
-	filters = append(filters,&connectionManagerFilter )
+	filters = append(filters,&connectionManagerFilterP)
 	return filters
 
 }
@@ -83,9 +85,8 @@ func CreateConectionManagerFilter(vHost v2route.VirtualHost, routeConfigName str
 	return manager
 }
 
-func CreateVirtualHost(mgwSwagger  apiDefinition.MgwSwagger,routes []*v2route.Route) (v2route.VirtualHost, error) {
+func CreateVirtualHost(vHost_Name string,routes []*v2route.Route) (v2route.VirtualHost, error) {
 
-	vHost_Name := "service_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
 	vHost_Domains :=  []string{"*"}
 
 	virtual_host := v2route.VirtualHost{
@@ -95,11 +96,10 @@ func CreateVirtualHost(mgwSwagger  apiDefinition.MgwSwagger,routes []*v2route.Ro
 	}
 
 	return virtual_host, nil
-
 }
 
 func createAddress(remoteHost string,Port uint32 ) core.Address {
-	var address core.Address = core.Address{Address: &core.Address_SocketAddress{
+	address := core.Address{Address: &core.Address_SocketAddress{
 		SocketAddress: &core.SocketAddress{
 			Address:  remoteHost,
 			Protocol: core.SocketAddress_TCP,

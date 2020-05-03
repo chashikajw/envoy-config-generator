@@ -13,24 +13,28 @@ type EnvoyNode struct {
 	endpoints []types.Resource
 }
 
+
 func (envoy *EnvoyNode) SetListener(listener *v2.Listener) {
-	envoy.listeners = append(envoy.listeners, listener)
+	envoy.listeners = []types.Resource{listener}
+
 }
 
 func (envoy *EnvoyNode) SetClusters(clusters []*v2.Cluster) {
-	for _,cluster := range clusters {
-		envoy.clusters = append(envoy.clusters,cluster )
+	for _,clusterP := range clusters {
+		envoy.clusters = append(envoy.clusters,clusterP )
 	}
 }
 
 func (envoy *EnvoyNode) SetRoutes(routes []*v2route.Route) {
-	for _,routes := range routes {
-		envoy.routes = append(envoy.routes,routes)
+	for _,routesP := range routes {
+		envoy.routes = append(envoy.routes,routesP)
 	}
 }
 
 func (envoy *EnvoyNode) GetSources() ([]types.Resource, []types.Resource, []types.Resource, []types.Resource) {
 	return envoy.listeners, envoy.clusters, envoy.routes, envoy.endpoints
 }
+
+
 
 

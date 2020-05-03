@@ -2,36 +2,55 @@ package envoyCodegen
 
 import (
 	"envoy-config-generator/config"
-	s "envoy-config-generator/swaggerOperator"
 	"envoy-config-generator/models/apiDefinition"
+	c "envoy-config-generator/constants"
+	s "envoy-config-generator/swaggerOperator"
 	"errors"
-	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	v2route "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	"github.com/golang/protobuf/ptypes"
 	"strings"
 	"time"
 )
-func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.Route, []*v2.Cluster) {
+func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.Route, []*v2.Cluster, []*v2route.Route, []*v2.Cluster) {
 	var (
-		routes []*v2route.Route
-		clusters []*v2.Cluster
-		endpoint apiDefinition.Endpoint
-		apiLevelEndpoint apiDefinition.Endpoint
-		cluster v2.Cluster
-		apilevelCluster v2.Cluster
-		clusterName string
-		address core.Address
-		cluster_ref string
+		routesP []*v2route.Route
+		clustersP []*v2.Cluster
+		endpointP apiDefinition.Endpoint
+		apiLevelEndpointP apiDefinition.Endpoint
+		clusterP v2.Cluster
+		apilevelClusterP v2.Cluster
+		clusterNameP string
+		addressP core.Address
+		cluster_refP string
+
+		routesS []*v2route.Route
+		clustersS []*v2.Cluster
+		endpointS apiDefinition.Endpoint
+		apiLevelEndpointS apiDefinition.Endpoint
+		clusterS v2.Cluster
+		apilevelClusterS v2.Cluster
+		clusterNameS string
+		addressS core.Address
+		cluster_refS string
 
 	)
 
+	if(s.IsSandboxEndpointsAvailable(mgwSwagger.VendorExtensible)) {
+		apiLevelEndpointS  = s.GetEndpoints(mgwSwagger.VendorExtensible, c.SANDBOX_ENDPOINTS)
+		apilevelAddressS := createAddress(apiLevelEndpointS.Url[0],config.API_PORT)
+		apiLevelClusterNameS := "clusterSand_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
+		apilevelClusterS = createCluster(apilevelAddressS,apiLevelClusterNameS)
+		clustersS = append(clustersS, &apilevelClusterS)
+	}
+
 	if(s.IsProductionEndpointsAvailable(mgwSwagger.VendorExtensible)) {
-		apiLevelEndpoint  = s.GetProductionEndpoint(mgwSwagger.VendorExtensible)
-		apilevelAddress := createAddress(apiLevelEndpoint.Url[0],config.API_PORT)
-		apiLevelClusterName := "cluster_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
-		apilevelCluster = createCluster(apilevelAddress,apiLevelClusterName)
-		clusters = append(clusters, &apilevelCluster)
+		apiLevelEndpointP  = s.GetEndpoints(mgwSwagger.VendorExtensible, c.PRODUCTION_ENDPOINTS)
+		apilevelAddressP := createAddress(apiLevelEndpointP.Url[0],config.API_PORT)
+		apiLevelClusterNameP := "clusterProd_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
+		apilevelClusterP = createCluster(apilevelAddressP,apiLevelClusterNameP)
+		clustersP = append(clustersP, &apilevelClusterP)
 
 
 	} else{
@@ -40,30 +59,61 @@ func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 
 	for ind,resource:= range mgwSwagger.Resources {
 
+		//resource level check sandbox endpoints
+		if(s.IsSandboxEndpointsAvailable(resource.VendorExtensible)) {
+			endpointS  = s.GetEndpoints(resource.VendorExtensible, c.SANDBOX_ENDPOINTS)
+			addressS = createAddress(endpointS.Url[0],config.API_PORT)
+			clusterNameS = "clusterSand_" + strings.Replace(resource.ID, " ", "", -1) + string(ind)
+			clusterS = createCluster(addressS,clusterNameS)
+			clustersS = append(clustersS, &clusterS)
+
+			cluster_refS = clusterS.GetName()
+
+			//sandbox endpoints
+			routeS := createRoute(endpointS.Url[0], resource.Context,cluster_refS)
+			routesS = append(routesS, &routeS)
+
+			//API level check
+		} else if(s.IsSandboxEndpointsAvailable(mgwSwagger.VendorExtensible)) {
+			endpointS = apiLevelEndpointS
+			cluster_refS = apilevelClusterS.GetName()
+
+			//sandbox endpoints
+			routeS := createRoute(endpointS.Url[0], resource.Context,cluster_refS)
+			routesS = append(routesS, &routeS)
+		}
+
 		//resource level check
 		if(s.IsProductionEndpointsAvailable(resource.VendorExtensible)) {
-			endpoint  = s.GetProductionEndpoint(resource.VendorExtensible)
-			address = createAddress(endpoint.Url[0],config.API_PORT)
-			clusterName = "cluster_" + strings.Replace(resource.ID, " ", "", -1) + string(ind)
-			cluster = createCluster(address,clusterName)
-			clusters = append(clusters, &cluster)
+			endpointP  = s.GetEndpoints(resource.VendorExtensible, c.PRODUCTION_ENDPOINTS)
+			addressP = createAddress(endpointP.Url[0],config.API_PORT)
+			clusterNameP = "clusterProd_" + strings.Replace(resource.ID, " ", "", -1) + string(ind)
+			clusterP = createCluster(addressP,clusterNameP)
+			clustersP = append(clustersP, &clusterP)
 
-			cluster_ref = cluster.GetName()
+			cluster_refP = clusterP.GetName()
+
+			//production endpoints
+			routeP := createRoute(endpointP.Url[0], resource.Context,cluster_refP)
+			routesP = append(routesP, &routeP)
 
 			//API level check
 		} else if(s.IsProductionEndpointsAvailable(mgwSwagger.VendorExtensible)){
-			endpoint = apiLevelEndpoint
-			cluster_ref = apilevelCluster.GetName()
+			endpointP = apiLevelEndpointP
+			cluster_refP = apilevelClusterP.GetName()
+
+			//production endpoints
+			routeP := createRoute(endpointP.Url[0], resource.Context,cluster_refP)
+			routesP = append(routesP, &routeP)
 
 		} else {
 			errors.New("Producton endpoints are not defined")
 		}
 
-		route := createRoute(endpoint.Url[0], resource.Context,cluster_ref)
-		routes = append(routes, &route)
+
 	}
 
-	return routes, clusters
+	return routesP, clustersP,  routesS, clustersS
 
 }
 

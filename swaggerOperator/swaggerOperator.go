@@ -2,8 +2,9 @@ package swaggerOperator
 
 import (
 	"envoy-config-generator/constants"
-	"envoy-config-generator/utills"
 	"envoy-config-generator/models/apiDefinition"
+	"envoy-config-generator/utills"
+	"reflect"
 
 	"encoding/json"
 
@@ -19,6 +20,7 @@ func GenerateMgwSwagger() apiDefinition.MgwSwagger {
 
 	// Open our jsonFile
 	openApif, err := os.Open("test.yaml")
+	fmt.Println(reflect.TypeOf(openApif))
 	// if we os.Open returns an error then handle it
 	if err != nil {
 		fmt.Println(err)
@@ -68,24 +70,31 @@ func IsProductionEndpointsAvailable(vendorExtensible map[string]interface{}) boo
 	}
 }
 
+func IsSandboxEndpointsAvailable(vendorExtensible map[string]interface{}) bool{
+	if _, found := vendorExtensible[constants.SANDBOX_ENDPOINTS]; found {
+		return true
+	} else {
+		return false
+	}
+}
 
 
-func GetProductionEndpoint(vendorExtensible map[string]interface{}) apiDefinition.Endpoint{
-	var productionEndpoint apiDefinition.Endpoint
-	if y, found := vendorExtensible["x-wso2-production-endpoints"]; found {
+func GetEndpoints(vendorExtensible map[string]interface{}, endpointType string) apiDefinition.Endpoint{
+	var Endpoints apiDefinition.Endpoint
+	if y, found := vendorExtensible[endpointType]; found {
 		if val, ok := y.(map[string]interface{}); ok {
 
 			for ind,val := range val {
 				//fmt.Println(ind, val)
 				if(ind == "type") {
-					productionEndpoint.UrlType = val.(string)
+					Endpoints.UrlType = val.(string)
 				} else if (ind == "urls") {
 					ainterface := val.([]interface {})
 					urls := make([]string, len(ainterface))
 					for i, v := range ainterface {
 						urls[i] = v.(string)
 					}
-					productionEndpoint.Url = urls
+					Endpoints.Url = urls
 				}
 
 			}
@@ -99,5 +108,6 @@ func GetProductionEndpoint(vendorExtensible map[string]interface{}) apiDefinitio
 	}
 
 
-	return productionEndpoint
+	return Endpoints
 }
+

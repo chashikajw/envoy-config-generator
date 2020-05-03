@@ -35,7 +35,7 @@ func hasPrefix(buf []byte, prefix []byte) bool {
 }
 
 func FindSwaggerVersion(jsn []byte) (string, error) {
-	var version string = "2"
+	var version string = "3"
 	var result map[string]interface{}
 
 	err :=json.Unmarshal(jsn, &result)
