@@ -5,7 +5,6 @@ import (
 	e "envoy-config-generator/envoyCodegen"
 	"envoy-config-generator/models/envoy"
 	swgger "envoy-config-generator/swaggerOperator"
-	"fmt"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
 	"strings"
 )
@@ -14,7 +13,7 @@ import (
 
 func main() {
 
-	fmt.Println(GetProductionsources())
+	GetProductionsources()
 
 }
 
@@ -26,9 +25,9 @@ func GetProductionsources() ([]types.Resource, []types.Resource, []types.Resourc
 
 	vHost_NameP := "serviceProd_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
 
-	vHostP, err := e.CreateVirtualHost(vHost_NameP,routesP)
+	vHostP, _ := e.CreateVirtualHost(vHost_NameP,routesP)
 
-	fmt.Println(err)
+	//fmt.Println(err)
 
 	listenerNameP := "listenerProd_1"
 	routeConfigNameP := "routeProd_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
@@ -40,8 +39,8 @@ func GetProductionsources() ([]types.Resource, []types.Resource, []types.Resourc
 	envoyNodeProd.SetClusters(clustersP)
 	envoyNodeProd.SetRoutes(routesP)
 	envoyNodeProd.SetEndpoints(endpointsP)
-	fmt.Println(endpointsP)
-	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++")
+	//fmt.Println(endpointsP)
+
 	return envoyNodeProd.GetSources()
 }
 
@@ -56,9 +55,9 @@ func GetSandboxsources() ([]types.Resource, []types.Resource, []types.Resource, 
 
 	vHost_NameS := "serviceSand_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
 
-	vHostS, err := e.CreateVirtualHost(vHost_NameS,routesS)
+	vHostS, _ := e.CreateVirtualHost(vHost_NameS,routesS)
 
-	fmt.Println(err)
+	//fmt.Println(err)
 
 	listenerNameS := "listenerSand_1"
 	routeConfigNameS := "routeSand_" + strings.Replace(mgwSwagger.Title, " ", "", -1) +  mgwSwagger.Version
@@ -70,8 +69,6 @@ func GetSandboxsources() ([]types.Resource, []types.Resource, []types.Resource, 
 	envoyNodeSand.SetClusters(clustersS)
 	envoyNodeSand.SetRoutes(routesS)
 	envoyNodeSand.SetEndpoints(endpointsS)
-	fmt.Println(endpointsS)
-	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++")
-
+	//fmt.Println(endpointsS)
 	return envoyNodeSand.GetSources()
 }

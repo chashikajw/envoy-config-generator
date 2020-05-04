@@ -6,6 +6,7 @@ import (
 	c "envoy-config-generator/constants"
 	s "envoy-config-generator/swaggerOperator"
 	"errors"
+	"fmt"
 	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	v2route "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
@@ -127,6 +128,9 @@ func CreateRoutesWithClusters(mgwSwagger  apiDefinition.MgwSwagger) ([]*v2route.
 
 	}
 
+	fmt.Println(len(routesP),"routes are generated successfully")
+	fmt.Println(len(clustersP), "clusters are generated successfully")
+	fmt.Println(len(endpointsP), "endpoints are generated successfully")
 	return routesP, clustersP, endpointsP, routesS, clustersS, endpointsP
 
 }

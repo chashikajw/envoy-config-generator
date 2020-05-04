@@ -1,12 +1,10 @@
 package swaggerOperator
 
 import (
+	"encoding/json"
 	"envoy-config-generator/constants"
 	"envoy-config-generator/models/apiDefinition"
 	"envoy-config-generator/utills"
-	"reflect"
-
-	"encoding/json"
 
 	"fmt"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -19,8 +17,10 @@ func GenerateMgwSwagger() apiDefinition.MgwSwagger {
 	var mgwSwagger  apiDefinition.MgwSwagger
 
 	// Open our jsonFile
-	openApif, err := os.Open("test.yaml")
-	fmt.Println(reflect.TypeOf(openApif))
+	openApif, err := os.Open("apis/test.yaml")
+
+
+
 	// if we os.Open returns an error then handle it
 	if err != nil {
 		fmt.Println(err)
@@ -31,6 +31,7 @@ func GenerateMgwSwagger() apiDefinition.MgwSwagger {
 
 	// read our opened jsonFile as a byte array.
 	jsn, _ := ioutil.ReadAll(openApif)
+
 
 	apiJsn, err := utills.ToJSON(jsn)
 	if err != nil {

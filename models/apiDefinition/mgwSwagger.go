@@ -9,8 +9,6 @@ type MgwSwagger struct {
 	BasePath                   string                      `json:"basePath,omitempty"`
 	VendorExtensible           map[string]interface{}
 	Resources                  []Resource
-	ProductionEndpoint         Endpoint
-	sandboxEndpoint            Endpoint
 	//Consumes            []string                    `json:"consumes,omitempty"`
 	//Produces            []string                    `json:"produces,omitempty"`
 	//Schemes             []string                    `json:"schemes,omitempty"`
@@ -38,8 +36,6 @@ type Resource struct {
 	ID           string
 	Security     []map[string][]string
 	VendorExtensible  map[string]interface{}
-	ProductionEndpoint         Endpoint
-	sandboxEndpoint            Endpoint
 	//produces     []string
 	//externalDocs *ExternalDocumentation
 	//deprecated   bool
